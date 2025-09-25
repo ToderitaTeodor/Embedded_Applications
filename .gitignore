@@ -54,4 +54,9 @@ dkms.conf
 # debug information files
 *.dwo
 
+#  .vs files
 *.vs
+
+# release and debug files
+Release/
+Debug/
