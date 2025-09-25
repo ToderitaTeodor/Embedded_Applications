@@ -1,8 +1,8 @@
-#Bitwise manipulation
+# Bitwise manipulation
 
-##App 1
+## App 1
 
-Requirement: perform the alternate blink of odd and even LEDs of the bargraph
+**Requirement: perform the alternate blink of odd and even LEDs of the bargraph**
 
 Cycle this infinitely.
 
@@ -13,9 +13,9 @@ The time between sequences is 500 milliseconds.
 
 ![Bargraph](../docs/images/bargraph1.png)
 
-##App 2
+## App 2
 
-Requirement: turn on the first two LEDs of the bargraph and then "move" them right LED by LED
+**Requirement: turn on the first two LEDs of the bargraph and then "move" them right LED by LED**
 
 Cycle this infinitely.
 
