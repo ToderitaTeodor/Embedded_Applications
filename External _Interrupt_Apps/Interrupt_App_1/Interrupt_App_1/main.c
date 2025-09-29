@@ -10,7 +10,6 @@
 
 unsigned long counter = 0;
 unsigned long toggle_delay = 900000UL;
-unsigned long last_toggle = 0;
 
 void init_devices(void)
 {
@@ -39,15 +38,15 @@ void resetPin(volatile uint8_t *port, uint8_t pin)
 
 int main(void)
 {
-	unsigned long counter = 0;
+	init_devices();
 		
     while (1) 
     {
 		counter++;
 		
-		if(counter - last_toggle >= toggle_delay)
+		if(counter >= toggle_delay)
 		{
-			last_toggle = counter;
+			counter = 0;
 			pinToggle(&LED0_PORT, LED0_PIN);
 		}
 		
