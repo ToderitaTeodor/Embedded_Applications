@@ -39,3 +39,24 @@ void printInt(uint32_t value)
 
   printString(buffer);
 }
+
+void printFloat(float value, uint8_t decimals)
+{
+    char buffer[12];
+
+    // partea întreagă
+    int intPart = (int)value;
+    ultoa(intPart, buffer, 10);
+    printString(buffer);
+
+    UART_sendByte('.');
+
+    // partea fracționară
+    float fracPart = value - intPart;
+    for(uint8_t i = 0; i < decimals; i++)
+        fracPart *= 10;
+
+    int fracInt = (int)(fracPart + 0.5f); // rotunjire
+    ultoa(fracInt, buffer, 10);
+    printString(buffer);
+}
