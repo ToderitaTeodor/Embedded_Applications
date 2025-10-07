@@ -5,12 +5,6 @@
 In parallel, if the BUTTON is pressed, the second LED (LED1) will be turned ON and when the BUTTON
 is released, the LED1 will be turned OFF.**
 
-**Requirements:**
-1. Detect which is the main problem of the program;
-2. Change the program's functionality in order to eliminate the problem
-
-![Code](../docs/images/interrupt1.png)
-
 ## App 2
 
 Use two buttons to command 4 LEDs. 
