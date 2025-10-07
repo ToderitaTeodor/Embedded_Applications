@@ -1,0 +1,6 @@
+site_name: Embedded Applications Docs
+theme:
+  name: material
+
+nav:
+  - Home: index.md
