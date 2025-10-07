@@ -6,5 +6,5 @@ nav:
   - Home: index.md
   - Embedded Apps Pages:
     - Bitwise Operation Apps: bitwise_operation_apps.md
-    - External Interrupt Apps: interrup_apps.md
+    - External Interrupt Apps: interrupt_apps.md
     - 7 Segment Display App: 7segment_display_app.md
