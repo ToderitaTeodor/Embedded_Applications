@@ -11,7 +11,7 @@ B: LEDs that have odd indexes.
 
 The time between sequences is 500 milliseconds.
 
-![Bargraph](../docs/images/bargraph1.png)
+![Bargraph](../images/bargraph1.png)
 
 ## App 2
 
@@ -23,4 +23,4 @@ The time between each "move" is 500 milliseconds.
 
 Extra: At the end shift them in opposite direction.
 
-![Bargraph](../docs/images/bargraph2.png)
+![Bargraph](../images/bargraph2.png)
