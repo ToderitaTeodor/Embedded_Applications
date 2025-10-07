@@ -1,18 +1,23 @@
-name: CI
+name: Deploy MkDocs from docs branch
 
 on:
   push:
-    branches: [ docs ]
-  pull_request:
-    branches: [ docs ]
+    branches:
+      - docs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - run: pip install mkdocs
-      - run: mkdocs build --strict
+      - run: pip install mkdocs mkdocs-material
+      - run: mkdocs gh-deploy --force
