@@ -1,9 +1,9 @@
-name: Deploy MkDocs from docs branch
+name: Deploy MkDocs
 
 on:
   push:
     branches:
-      - docs
+      - main
   workflow_dispatch:
 
 permissions:
