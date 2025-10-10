@@ -11,7 +11,7 @@ void LM35_init(uint8_t channel)
     ADC_init();
 }
 
-float LM32_ReadTempC(void)
+float LM35_ReadTempC(void)
 {
     uint32_t sum = 0;
     for (uint8_t i = 0; i < 10; i++)

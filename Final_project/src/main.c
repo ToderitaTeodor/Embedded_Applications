@@ -5,9 +5,15 @@
 #include <stdlib.h>
 #include "LM35.h"
 #include "UART.h"
+#include "TimerUtil.h"
+
+#define LM35_READING_INTERVAL  1500
+
+uint32_t lasTime = 0;
 
 int main(void)
 {
+    systemTime_init();
     UART_init(9600);
     LM35_init(0);
 
@@ -17,6 +23,8 @@ int main(void)
 
     while (1)
     {
+        uint32_t currentTime = sysTime();
+
         if(data_ready)
         {
             data_ready = 0;
@@ -49,12 +57,16 @@ int main(void)
 
         if(adc_enabled)
         {
-            uint16_t temperature = LM32_ReadTempC();
+            if(currentTime - lasTime >= LM35_READING_INTERVAL)
+            {
+                uint16_t temperature = LM35_ReadTempC();
 
+                printString("Temoperature: ");
+                printFloat(temperature, 2);
+                printString(" C\r\n");
 
-            printString("Temoperature: ");
-            printFloat(temperature, 2);
-            printString(" C\r\n");
+                lasTime = currentTime;
+            }
         }
 
         _delay_ms(500);
