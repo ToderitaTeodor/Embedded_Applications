@@ -3,21 +3,36 @@
 #include <util/delay.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "ADC.h"
 #include "LM35.h"
 #include "UART.h"
 #include "TimerUtil.h"
 
+#define LM35_CHANNEL 0
+#define LDR_CHANNEL 1
 #define LM35_READING_INTERVAL  1500
+#define LDR_READING_INTERVAL  500
 
-uint32_t lasTime = 0;
+
+void init_peripherals(void)
+{
+    systemTime_init();
+    
+    ADC_init();
+    UART_init(9600);
+    LM35_init(LM35_CHANNEL);
+    sei();
+}
+
+uint32_t lasTimeLM35 = 0;
+uint32_t lasTimeLDR = 0;
+
 
 int main(void)
 {
-    systemTime_init();
-    UART_init(9600);
-    LM35_init(0);
+    init_peripherals();
 
-    sei();
+    DDRC |= (1 << PC0);
 
     printString("System ready. Type 'help' for commands.\r\n");
 
@@ -57,15 +72,37 @@ int main(void)
 
         if(adc_enabled)
         {
-            if(currentTime - lasTime >= LM35_READING_INTERVAL)
+            if(currentTime - lasTimeLM35 >= LM35_READING_INTERVAL)
             {
                 uint16_t temperature = LM35_ReadTempC();
 
                 printString("Temoperature: ");
                 printFloat(temperature, 2);
                 printString(" C\r\n");
+                printString("--------\r\n");
 
-                lasTime = currentTime;
+                lasTimeLM35 = currentTime;
+            }
+
+            if(currentTime - lasTimeLDR >= LDR_READING_INTERVAL)
+            {
+                uint16_t ldrValue = ADC_read(LDR_CHANNEL);
+
+                if(ldrValue < 100)
+                {
+                    PORTC |= (1 << PC0);
+                }
+                else
+                {
+                    PORTC &= ~(1 << PC0);    
+                }
+
+                printString("LDR analog value: ");
+                printInt(ldrValue);
+                printString("\r\n");
+                printString("--------\r\n");
+
+                lasTimeLDR = currentTime;
             }
         }
 
