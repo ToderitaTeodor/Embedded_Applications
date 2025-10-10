@@ -13,8 +13,12 @@ void LM35_init(uint8_t channel)
 
 float LM32_ReadTempC(void)
 {
-    uint16_t adcValue = ADC_read(lm35_channel);
-    float voltage = ADC_to_voltage(adcValue);
+    uint32_t sum = 0;
+    for (uint8_t i = 0; i < 10; i++)
+        sum += ADC_read(lm35_channel);
+    
+    float avg = sum / 10.0;
+    float voltage = ADC_to_voltage(avg);
 
     return voltage * 100.0; // temperature
 }

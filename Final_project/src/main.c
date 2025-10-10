@@ -54,7 +54,7 @@ int main(void)
 
             printString("Temoperature: ");
             printFloat(temperature, 2);
-            printString(" V\r\n");
+            printString(" C\r\n");
         }
 
         _delay_ms(500);
