@@ -7,6 +7,7 @@
 #include "LM35.h"
 #include "UART.h"
 #include "TimerUtil.h"
+#include "PWM.h"
 
 #define LM35_CHANNEL 0
 #define LDR_CHANNEL 1
