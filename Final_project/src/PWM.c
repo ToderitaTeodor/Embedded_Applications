@@ -5,9 +5,7 @@
 
 
 void PWM_init(void)
-{
-    
-    DDRB |= (1 << PB5);         
+{     
     TCCR1A = (1 << COM1A1) | (1 << WGM10);
     TCCR1B = (1 << WGM12) | (1 << CS11); 
 }

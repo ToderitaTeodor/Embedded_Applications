@@ -19,6 +19,7 @@ void init_peripherals(void)
 {
     systemTime_init();
     
+    PWM_init();
     ADC_init();
     UART_init(9600);
     LM35_init(LM35_CHANNEL);
@@ -28,12 +29,16 @@ void init_peripherals(void)
 uint32_t lasTimeLM35 = 0;
 uint32_t lasTimeLDR = 0;
 
+uint8_t fanStart = 0;
+
 
 int main(void)
 {
     init_peripherals();
 
     DDRC |= (1 << PC0);
+
+    DDRB |= (1 << PB5);
 
     printString("System ready. Type 'help' for commands.\r\n");
 
@@ -45,66 +50,86 @@ int main(void)
         {
             data_ready = 0;
 
-            if(strcmp(uart_buffer, "adc_on") == 0)
+            if(strcmp(uart_buffer, "start") == 0)
             {
                 adc_enabled = 1;
-                printString("ADC ENABLED\r\n");
+                printString("Reading started\r\n");
             }
-            else if(strcmp(uart_buffer, "adc_off") == 0)
+            else if(strcmp(uart_buffer, "stop") == 0)
             {
+
+                if(fanStart)
+                {
+                    fanStart = 0;
+                    setMotorSpeed(0);
+                    PORTC = (1 << PC7);
+                }
+
                 adc_enabled = 0;
-                printString("ADC DISABLED\r\n");
+
+                printString("Reading stopped\r\n");
             }
-            else if(strcmp(uart_buffer, "adc_status") == 0)
+            else if(strcmp(uart_buffer, "status") == 0)
             {
-                printString("ADC ");
+                printString("Reading ");
                 printString(adc_enabled ? "ON\r\n" : "OFF\r\n");
             }
             else if(strcmp(uart_buffer, "help") == 0)
             {
                 printString("Available commands:\r\n");
-                printString("adc_on\r\nadc_off\r\nadc_status\r\nhelp\r\n");
+                printString("start\r\nstop\r\nstatus\r\nhelp\r\n");
             }
             else
             {
                 printString("Unknown command. Type 'help' for list.\r\n");
             }
         }
-
+        
         if(adc_enabled)
         {
             if(currentTime - lasTimeLM35 >= LM35_READING_INTERVAL)
             {
                 uint16_t temperature = LM35_ReadTempC();
 
-                printString("Temoperature: ");
+                printString("Temperature: ");
                 printFloat(temperature, 2);
                 printString(" C\r\n");
                 printString("--------\r\n");
 
                 lasTimeLM35 = currentTime;
+
+                if((temperature > 24) && !fanStart)
+                {
+                    fanStart = 1;
+                    setMotorSpeed(150);
+                }
+                if((temperature < 24) && fanStart)
+                {
+                    setMotorSpeed(0);
+                    fanStart = 0;
+                }
             }
 
-            if(currentTime - lasTimeLDR >= LDR_READING_INTERVAL)
-            {
-                uint16_t ldrValue = ADC_read(LDR_CHANNEL);
+            // if(currentTime - lasTimeLDR >= LDR_READING_INTERVAL)
+            // {
+            //     uint16_t ldrValue = ADC_read(LDR_CHANNEL);
 
-                if(ldrValue < 100)
-                {
-                    PORTC |= (1 << PC0);
-                }
-                else
-                {
-                    PORTC &= ~(1 << PC0);    
-                }
+            //     if(ldrValue < 100)
+            //     {
+            //         PORTC |= (1 << PC0);
+            //     }
+            //     else
+            //     {
+            //         PORTC &= ~(1 << PC0);    
+            //     }
 
-                printString("LDR analog value: ");
-                printInt(ldrValue);
-                printString("\r\n");
-                printString("--------\r\n");
+            //     // printString("LDR analog value: ");
+            //     // printInt(ldrValue);
+            //     // printString("\r\n");
+            //     // printString("--------\r\n");
 
-                lasTimeLDR = currentTime;
-            }
+            //     lasTimeLDR = currentTime;
+            // }
         }
 
         _delay_ms(500);
