@@ -101,7 +101,7 @@ int main(void)
                 if((temperature > 24) && !fanStart)
                 {
                     fanStart = 1;
-                    setMotorSpeed(150);
+                    setMotorSpeed(180);
                 }
                 if((temperature < 24) && fanStart)
                 {

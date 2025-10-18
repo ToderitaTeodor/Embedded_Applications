@@ -15,7 +15,7 @@ void PWM_init(void)
 
 }
 
-void LED_brightness(uint8_t brightness)
+void Fan_speed(uint8_t brightness)
 {
     OCR1A = brightness;
 }
