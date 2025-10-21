@@ -14,22 +14,167 @@
 #define LM35_READING_INTERVAL  1500
 #define LDR_READING_INTERVAL  500
 
-
-void init_peripherals(void)
-{
-    systemTime_init();
-    
-    PWM_init();
-    ADC_init();
-    UART_init(9600);
-    LM35_init(LM35_CHANNEL);
-    sei();
-}
+volatile uint8_t menu = 0;
+const uint8_t totalMenus = 2;
+volatile uint8_t selected = 0;
 
 uint32_t lasTimeLM35 = 0;
 uint32_t lasTimeLDR = 0;
 
 uint8_t fanStart = 0;
+
+volatile float temperature = 0;
+volatile uint8_t temperatureSetValue = 50;
+
+volatile uint16_t ldrValue = 0;
+volatile uint16_t ldrSetValue = 100;
+
+void init_peripherals(void)
+{
+    //  NEXT (PD2 - INT2), PREV (PD3 - INT3), SELECT (PE4 - INT4)
+    DDRD &= ~((1 << PD2) | (1 << PD3));
+    DDRE &= ~(1 << PE4);
+
+    PORTD |= (1 << PD2) | (1 << PD3); 
+    PORTE |= (1 << PE4);             
+
+
+    EIMSK |= (1 << INT2) | (1 << INT3) | (1 << INT4);
+
+
+    EICRA |= (1 << ISC21) | (1 << ISC31);
+    EICRB |= (1 << ISC41);
+
+    systemTime_init();
+    PWM_init();
+    ADC_init();
+    UART_init(9600);
+    I2C_init();
+    LCD_init();
+    LM35_init(LM35_CHANNEL);
+    sei();
+}
+
+void displayMenu(uint8_t menuIndex)
+{
+    LCD_clear();
+    switch(menuIndex)
+    {
+        case 0:
+            LCD_print("1. Temperature");
+            break;
+        case 1:
+            LCD_print("2. Light");
+            break;
+    }
+}
+
+void displaySubmenu(uint8_t menuIndex)
+{
+    LCD_clear();
+    switch(menuIndex)
+    {
+        case 0:
+            LCD_print("Set temperature: ");
+            LCD_gotoxy(0, 1);
+            LCD_printInt(temperatureSetValue);
+            LCD_print(" C");
+            break;
+        case 1:
+            LCD_print("Set light value: ");
+            LCD_gotoxy(0, 1);
+            LCD_printInt(ldrSetValue);
+            break;
+    }
+
+}
+
+void updateMenuDisplay(void) {
+    switch(menu) {
+        case 0:
+            LCD_gotoxy(0, 1);
+            char buf[16];
+            dtostrf(temperature, 2, 1, buf);
+            LCD_print(buf);
+            LCD_print(" C   "); 
+            break;
+        case 1:
+            LCD_gotoxy(0, 1);
+            itoa(ldrValue, buf, 10);
+            LCD_print(buf);
+            LCD_print(" Lux  ");
+            break;
+    }
+}
+
+
+// ISR NEXT
+ISR(INT2_vect)
+{
+    if(!selected)
+    {
+
+        if(menu < totalMenus - 1)
+            menu++;
+        else
+            return;
+
+        displayMenu(menu);
+    }
+    else
+    {
+        switch(menu)
+        {
+            case 0: temperatureSetValue++; break;
+            case 1: ldrSetValue++; break;
+        }
+        displaySubmenu(menu);
+    }
+}
+
+// ISR PREV 
+ISR(INT3_vect)
+{
+    if(!selected)
+    {
+        if(menu > 0)
+            menu--;
+        else
+            return;
+
+        displayMenu(menu);
+    }
+    else
+    {
+
+        switch(menu)
+        {
+            case 0: temperatureSetValue--; break;
+            case 1: ldrSetValue--; break;
+        }
+        displaySubmenu(menu);
+    }
+}
+
+// ISR SELECT
+ISR(INT4_vect)
+{
+    if(!selected)
+    {
+        selected = 1;
+        displaySubmenu(menu);
+    }
+    else
+    {
+        selected = 0;
+        displayMenu(menu);
+
+        printString("Temperature: ");
+        printInt(temperatureSetValue);
+        printString("  Brightness: ");
+        printInt(ldrSetValue);
+    }
+}
 
 
 int main(void)
@@ -41,6 +186,8 @@ int main(void)
     DDRB |= (1 << PB5);
 
     printString("System ready. Type 'help' for commands.\r\n");
+
+    displayMenu(menu);
 
     while (1)
     {
@@ -62,7 +209,6 @@ int main(void)
                 {
                     fanStart = 0;
                     setMotorSpeed(0);
-                    PORTC = (1 << PC7);
                 }
 
                 adc_enabled = 0;
@@ -89,7 +235,7 @@ int main(void)
         {
             if(currentTime - lasTimeLM35 >= LM35_READING_INTERVAL)
             {
-                uint16_t temperature = LM35_ReadTempC();
+                temperature = LM35_ReadTempC();
 
                 printString("Temperature: ");
                 printFloat(temperature, 2);
@@ -98,39 +244,40 @@ int main(void)
 
                 lasTimeLM35 = currentTime;
 
-                if((temperature > 24) && !fanStart)
+                if((temperature > temperatureSetValue) && !fanStart)
                 {
+                    setMotorSpeed(230);
                     fanStart = 1;
-                    setMotorSpeed(180);
+                    printString("Fan ON\r\n");
                 }
-                if((temperature < 24) && fanStart)
+                if((temperature < temperatureSetValue - 1) && fanStart)
                 {
                     setMotorSpeed(0);
                     fanStart = 0;
+                    printString("Fan OFF\r\n");
                 }
             }
 
-            // if(currentTime - lasTimeLDR >= LDR_READING_INTERVAL)
-            // {
-            //     uint16_t ldrValue = ADC_read(LDR_CHANNEL);
+            if(currentTime - lasTimeLDR >= LDR_READING_INTERVAL)
+            {
+                ldrValue = ADC_read(LDR_CHANNEL);
 
-            //     if(ldrValue < 100)
-            //     {
-            //         PORTC |= (1 << PC0);
-            //     }
-            //     else
-            //     {
-            //         PORTC &= ~(1 << PC0);    
-            //     }
-
-            //     // printString("LDR analog value: ");
-            //     // printInt(ldrValue);
-            //     // printString("\r\n");
-            //     // printString("--------\r\n");
-
-            //     lasTimeLDR = currentTime;
-            // }
+                if(ldrValue < ldrSetValue)
+                {
+                    PORTC |= (1 << PC0);
+                }
+                else
+                {
+                    PORTC &= ~(1 << PC0);    
+                }
+                lasTimeLDR = currentTime;
+            }
         }
+
+        if (!selected) 
+        {
+        updateMenuDisplay();
+        }   
 
         _delay_ms(500);
     }
