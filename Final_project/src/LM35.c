@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
-#include "ADC.h"
+#include "../lib/ADC.h"
 
 static uint8_t lm35_channel = 0;
 

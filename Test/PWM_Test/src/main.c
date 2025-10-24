@@ -31,13 +31,12 @@ uint8_t brightness = 0;
 int main(void)
 {
 
-  buttons_interrupt_init();
   PWM_init();
   DDRB |= (1 << PB5);
-
+  Fan_speed(255);
   while (1)
   {
-      Fan_speed(fanSpeed);
+      
   }
 
   return 0;
