@@ -1,4 +1,4 @@
-#include "LCD.h"
+#include "../lib/LCD.h"
 #include <avr/io.h>
 #include <stdint.h>
 #include <stdlib.h>

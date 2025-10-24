@@ -1,13 +1,13 @@
+#include "../lib/ADC.h"
+#include "../lib/LM35.h"
+#include "../lib/UART.h"
+#include "../lib/TimerUtil.h"
+#include "../lib/PWM.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "ADC.h"
-#include "LM35.h"
-#include "UART.h"
-#include "TimerUtil.h"
-#include "PWM.h"
 
 #define LM35_CHANNEL 0
 #define LDR_CHANNEL 1
@@ -38,9 +38,7 @@ void init_peripherals(void)
     PORTD |= (1 << PD2) | (1 << PD3); 
     PORTE |= (1 << PE4);             
 
-
     EIMSK |= (1 << INT2) | (1 << INT3) | (1 << INT4);
-
 
     EICRA |= (1 << ISC21) | (1 << ISC31);
     EICRB |= (1 << ISC41);
@@ -262,7 +260,11 @@ int main(void)
             {
                 ldrValue = ADC_read(LDR_CHANNEL);
 
-                if(ldrValue < ldrSetValue)
+                
+                lasTimeLDR = currentTime;
+            }
+
+            if(ldrValue < ldrSetValue)
                 {
                     PORTC |= (1 << PC0);
                 }
@@ -270,8 +272,6 @@ int main(void)
                 {
                     PORTC &= ~(1 << PC0);    
                 }
-                lasTimeLDR = currentTime;
-            }
         }
 
         if (!selected) 
