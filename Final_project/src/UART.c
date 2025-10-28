@@ -7,7 +7,7 @@ volatile char uart_buffer[32];
 volatile uint8_t uart_index = 0;
 volatile uint8_t data_ready = 0;
 
-volatile uint8_t adc_enabled = 0; // default OFF
+volatile uint8_t transmit_enabled = 0; // default OFF
 
 void UART_init(uint32_t baud_rate)
 {

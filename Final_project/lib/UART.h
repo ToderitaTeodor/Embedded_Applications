@@ -13,6 +13,6 @@ extern volatile char uart_buffer[];
 extern volatile uint8_t uart_index;
 extern volatile uint8_t data_ready;
 
-extern volatile uint8_t adc_enabled;
+extern volatile uint8_t transmit_enabled;
 
 #endif

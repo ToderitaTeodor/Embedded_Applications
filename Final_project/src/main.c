@@ -84,7 +84,6 @@ void displaySubmenu(uint8_t menuIndex)
             LCD_printInt(ldrSetValue);
             break;
     }
-
 }
 
 void updateMenuDisplay(void) {
@@ -166,14 +165,8 @@ ISR(INT4_vect)
     {
         selected = 0;
         displayMenu(menu);
-
-        printString("Temperature: ");
-        printInt(temperatureSetValue);
-        printString("  Brightness: ");
-        printInt(ldrSetValue);
     }
 }
-
 
 int main(void)
 {
@@ -197,26 +190,19 @@ int main(void)
 
             if(strcmp(uart_buffer, "start") == 0)
             {
-                adc_enabled = 1;
+                transmit_enabled = 1;
                 printString("Reading started\r\n");
             }
             else if(strcmp(uart_buffer, "stop") == 0)
             {
-
-                if(fanStart)
-                {
-                    fanStart = 0;
-                    setMotorSpeed(0);
-                }
-
-                adc_enabled = 0;
+                transmit_enabled = 0;
 
                 printString("Reading stopped\r\n");
             }
             else if(strcmp(uart_buffer, "status") == 0)
             {
                 printString("Reading ");
-                printString(adc_enabled ? "ON\r\n" : "OFF\r\n");
+                printString(transmit_enabled ? "ON\r\n" : "OFF\r\n");
             }
             else if(strcmp(uart_buffer, "help") == 0)
             {
@@ -229,49 +215,50 @@ int main(void)
             }
         }
         
-        if(adc_enabled)
-        {
-            if(currentTime - lasTimeLM35 >= LM35_READING_INTERVAL)
-            {
-                temperature = LM35_ReadTempC();
 
+        if(currentTime - lasTimeLM35 >= LM35_READING_INTERVAL)
+        {
+            temperature = LM35_ReadTempC();
+            lasTimeLM35 = currentTime;
+
+            if(transmit_enabled)
+            {
                 printString("Temperature: ");
                 printFloat(temperature, 2);
                 printString(" C\r\n");
                 printString("--------\r\n");
-
-                lasTimeLM35 = currentTime;
-
-                if((temperature > temperatureSetValue) && !fanStart)
-                {
-                    setMotorSpeed(230);
-                    fanStart = 1;
-                    printString("Fan ON\r\n");
-                }
-                if((temperature < temperatureSetValue - 1) && fanStart)
-                {
-                    setMotorSpeed(0);
-                    fanStart = 0;
-                    printString("Fan OFF\r\n");
-                }
             }
 
-            if(currentTime - lasTimeLDR >= LDR_READING_INTERVAL)
+            if((temperature > temperatureSetValue) && !fanStart)
             {
-                ldrValue = ADC_read(LDR_CHANNEL);
+                setMotorSpeed(230);
+                fanStart = 1;
+                if (transmit_enabled) printString("Fan ON\r\n");
+            }
+            else if((temperature < temperatureSetValue - 1) && fanStart)
+            {
+                setMotorSpeed(0);
+                fanStart = 0;
+                if (transmit_enabled) printString("Fan OFF\r\n");
+            }
+        }
 
-                
-                lasTimeLDR = currentTime;
+        if (currentTime - lasTimeLDR >= LDR_READING_INTERVAL)
+        {
+            ldrValue = ADC_read(LDR_CHANNEL);
+            lasTimeLDR = currentTime;
+
+            if (transmit_enabled)
+            {
+                printString("LDR value: ");
+                printInt(ldrValue);
+                printString("\r\n");
             }
 
-            if(ldrValue < ldrSetValue)
-                {
-                    PORTC |= (1 << PC0);
-                }
-                else
-                {
-                    PORTC &= ~(1 << PC0);    
-                }
+            if (ldrValue < ldrSetValue)
+                PORTC |= (1 << PC0);
+            else
+                PORTC &= ~(1 << PC0);
         }
 
         if (!selected) 
