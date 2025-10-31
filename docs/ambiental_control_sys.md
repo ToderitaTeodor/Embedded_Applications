@@ -35,3 +35,5 @@ This project monitors ambient temperature and light levels using sensors and dis
 - Can be tested via UART  
 
 ## Diagrams
+- **Block Diagram:** ![Block Diagram](images/BlockDiagram.png)  
+- **Circuit Schematic:** ![Circuit Schematic](images/CircuitSchematic.png)  
