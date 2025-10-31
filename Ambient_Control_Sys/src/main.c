@@ -1,8 +1,8 @@
-#include "../lib/ADC.h"
-#include "../lib/LM35.h"
-#include "../lib/UART.h"
-#include "../lib/TimerUtil.h"
-#include "../lib/PWM.h"
+#include "ADC.h"
+#include "LM35.h"
+#include "UART.h"
+#include "TimerUtil.h"
+#include "PWM.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
