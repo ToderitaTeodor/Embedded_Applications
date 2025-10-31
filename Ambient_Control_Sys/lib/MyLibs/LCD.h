@@ -4,7 +4,10 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
+#ifndef F_CPU
 #define F_CPU 16000000UL
+#endif
+
 #define LCD_ADDR 0x27 // or 0x3F
 
 void I2C_init(void);
