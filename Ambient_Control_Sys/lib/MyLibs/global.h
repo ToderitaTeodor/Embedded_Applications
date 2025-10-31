@@ -23,6 +23,4 @@ extern volatile uint8_t temperatureSetValue;
 extern volatile uint16_t ldrValue;
 extern volatile uint16_t ldrSetValue;
 
-void ISR_init(void);
-
 #endif
