@@ -14,40 +14,99 @@
 #include "ISR_Handler.h"
 #include "System_Init.h"
 
+typedef enum {
+    MODE_NORMAL,
+    MODE_TEST
+} SystemMode;
+
+SystemMode currentMode = MODE_NORMAL;
+
 void UART_debugging(void)
 {
-    if(data_ready)
+    if (data_ready)
     {
         data_ready = 0;
 
-        if(strcmp(uart_buffer, "start") == 0)
+        if (strcmp(uart_buffer, "test_mode") == 0)
         {
-            transmit_enabled = 1;
-            printString("Reading started\r\n");
+            currentMode = MODE_TEST;
+            printString("Switched to TEST MODE\r\n");
         }
-        else if(strcmp(uart_buffer, "stop") == 0)
+        else if (strcmp(uart_buffer, "normal_mode") == 0)
         {
-            transmit_enabled = 0;
-
-            printString("Reading stopped\r\n");
+            currentMode = MODE_NORMAL;
+            printString("Switched to NORMAL MODE\r\n");
         }
-        else if(strcmp(uart_buffer, "status") == 0)
+        else if (currentMode == MODE_NORMAL)
         {
-            printString("Reading ");
-            printString(transmit_enabled ? "ON\r\n" : "OFF\r\n");
+            if (strcmp(uart_buffer, "start") == 0)
+            {
+                transmit_enabled = 1;
+                printString("Reading started\r\n");
+            }
+            else if (strcmp(uart_buffer, "stop") == 0)
+            {
+                transmit_enabled = 0;
+                printString("Reading stopped\r\n");
+            }
+            else if (strcmp(uart_buffer, "status") == 0)
+            {
+                printString("Reading ");
+                printString(transmit_enabled ? "ON\r\n" : "OFF\r\n");
+            }
+            else if (strcmp(uart_buffer, "help") == 0)
+            {
+                printString("Available commands (NORMAL MODE):\r\n");
+                printString("start\r\nstop\r\nstatus\r\nhelp\r\ntest_mode\r\n");
+            }
+            else
+            {
+                printString("Unknown command. Type 'help' for list.\r\n");
+            }
         }
-        else if(strcmp(uart_buffer, "help") == 0)
+        else if (currentMode == MODE_TEST)
         {
-            printString("Available commands:\r\n");
-            printString("start\r\nstop\r\nstatus\r\nhelp\r\n");
-        }
-        else
-        {
-            printString("Unknown command. Type 'help' for list.\r\n");
+            if (strcmp(uart_buffer, "test_led") == 0)
+            {
+                // for (int i = 0; i < 3; i++)
+                // {
+                //     PORTC ^= (1 << PC0);
+                //     _delay_ms(300);
+                // }
+                // printString("LED test completed\r\n");
+            }
+            else if (strcmp(uart_buffer, "test_temp") == 0)
+            {
+                printString("Temperature: ");
+                printFloat(temperature, 2);
+                printString(" C\r\n");
+            }
+            else if (strcmp(uart_buffer, "test_lcd") == 0)
+            {
+                LCD_clear();
+                LCD_print("LCD Test");
+                LCD_gotoxy(0, 1);
+                LCD_print("OK");
+            }
+            else if (strcmp(uart_buffer, "test_motor") == 0)
+            {
+                // setMotorSpeed(200);
+                // _delay_ms(1000);
+                // setMotorSpeed(0);
+                // printString("Motor test completed\r\n");
+            }
+            else if (strcmp(uart_buffer, "help") == 0)
+            {
+                printString("Available commands (TEST MODE):\r\n");
+                printString("test_led\r\ntest_temp\r\ntest_lcd\r\ntest_motor\r\nnormal_mode\r\n");
+            }
+            else
+            {
+                printString("Unknown command. Type 'help' for list.\r\n");
+            }
         }
     }
 }
-
         
 void temperatureTransmit(uint32_t currentTime)
 {
