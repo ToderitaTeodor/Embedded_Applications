@@ -39,4 +39,5 @@ int main(void)
 
         temperatureTransmit(currentTime);
         UART_debugging();
+    }
 }

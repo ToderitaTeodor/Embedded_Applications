@@ -22,7 +22,7 @@ void UART_init(uint32_t baud_rate)
 
 void printByte(uint8_t data)
 {
-    //while(!(UCSR0A & (1 << UDRE0)));
+    while(!(UCSR0A & (1 << UDRE0)));
     UDR0 = data;
 }
 
