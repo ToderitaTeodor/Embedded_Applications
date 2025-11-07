@@ -41,6 +41,11 @@ void displaySubmenu(uint8_t menuIndex)
 
 void updateMenuDisplay(void) 
 {
+<<<<<<< Updated upstream
+=======
+    char buf[16];  // buffer comun
+
+>>>>>>> Stashed changes
     switch(menu) {
         case 0:
             LCD_gotoxy(0, 1);
@@ -56,4 +61,24 @@ void updateMenuDisplay(void)
             LCD_print(" Lux  ");
             break;
     }
+<<<<<<< Updated upstream
+=======
+}
+
+void setLCDDisplayMode(uint8_t mode)
+{
+    LCD_clear();
+    if (mode == 1)
+    {
+        LCD_gotoxy(0, 0);
+        LCD_print("Debugging");
+        LCD_gotoxy(0, 1);
+        LCD_print("...  ");
+        LCD_print("        ");
+    }
+    else
+    {
+        displayMenu(menu);
+    }
+>>>>>>> Stashed changes
 }

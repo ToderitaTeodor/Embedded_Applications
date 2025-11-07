@@ -23,3 +23,5 @@ volatile uint8_t temperatureSetValue = 50;
 
 volatile uint16_t ldrValue = 0;
 volatile uint16_t ldrSetValue = 100;
+
+volatile uint8_t debug_interface_active = 0;

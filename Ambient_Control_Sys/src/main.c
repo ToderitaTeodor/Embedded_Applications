@@ -27,6 +27,20 @@ int main(void)
     {
         uint32_t currentTime = sysTime();
 
+<<<<<<< Updated upstream
+=======
+        if(!selected && !debug_interface_active)
+        {
+
+            EIMSK &= ~((1 << INT4) | (1 << INT5)); 
+
+            updateMenuDisplay();
+
+            EIMSK |= (1 << INT4) | (1 << INT5); 
+        }
+
+        temperatureTransmit(currentTime);
+>>>>>>> Stashed changes
         UART_debugging();
         temperatureTransmit(currentTime);
         ldrTransmit(currentTime);
