@@ -12,7 +12,7 @@
 #include "LCD.h"
 #include "UI.h"
 #include "ISR_Handler.h"
-#include "System_Init.h"
+#include "SystemInit.h"
 
 typedef enum {
     MODE_NORMAL,
