@@ -54,15 +54,6 @@ void printFloat(float value, uint8_t decimals)
     printString(buffer);
 }
 
-void printInt(uint32_t value)
-{
-  char buffer[12];
-
-  ultoa(value, buffer, 10);
-
-  printString(buffer);
-}
-
 ISR(USART0_RX_vect)
 {
     char c = UDR0;

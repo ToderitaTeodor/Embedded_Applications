@@ -27,7 +27,7 @@ int main(void)
     {
         uint32_t currentTime = sysTime();
 
-        if(!selected && !transmit_enabled)
+        if(!selected && !debug_interface_active)
         {
 
             EIMSK &= ~((1 << INT4) | (1 << INT5)); 
@@ -39,5 +39,4 @@ int main(void)
 
         temperatureTransmit(currentTime);
         UART_debugging();
-    }
 }

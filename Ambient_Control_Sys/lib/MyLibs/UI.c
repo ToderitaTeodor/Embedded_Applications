@@ -44,7 +44,6 @@ void displaySubmenu(uint8_t menuIndex)
 void updateMenuDisplay(void) 
 {
     char buf[16]; 
-
     switch(menu) {
         case 0:
             LCD_gotoxy(0, 1);
