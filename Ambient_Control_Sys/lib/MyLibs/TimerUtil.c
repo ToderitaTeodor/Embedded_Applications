@@ -37,11 +37,11 @@ uint32_t sysTime(void)
 {
     uint32_t timer;
 
-    cli(); // stop all interrupts
+    //cli(); // stop all interrupts
     
     timer = ms_counter;
 
-    sei();
+    //sei();
 
     return timer;
 }
