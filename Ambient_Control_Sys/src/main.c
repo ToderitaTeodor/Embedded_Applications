@@ -3,23 +3,23 @@
 #include <util/delay.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "ADC.h"
+#include "UART.h"
+#include "LM35.h"
 #include "TimerUtil.h"
-#include "global.h"
+#include "TransmitData.h"
+#include "LCD.h"
 #include "UI.h"
+#include "global.h"
 #include "ISR_Handler.h"
-#include "System_Init.h"
-#include "Transmit_Data.h"
+#include "SystemInit.h"
 
 
 int main(void)
 {
     init_peripherals();
-
-    DDRC |= (1 << PC0);
-
-    DDRB |= (1 << PB5);
-
-    printString("System ready. Type 'help' for commands.\r\n");
+    sei();
+    ISR_init();
 
     displayMenu(menu);
 
@@ -27,8 +27,6 @@ int main(void)
     {
         uint32_t currentTime = sysTime();
 
-<<<<<<< Updated upstream
-=======
         if(!selected && !debug_interface_active)
         {
 
@@ -40,14 +38,5 @@ int main(void)
         }
 
         temperatureTransmit(currentTime);
->>>>>>> Stashed changes
         UART_debugging();
-        temperatureTransmit(currentTime);
-        ldrTransmit(currentTime);
-
-        if (!selected) 
-        {
-        updateMenuDisplay();
-        }   
-    }
 }

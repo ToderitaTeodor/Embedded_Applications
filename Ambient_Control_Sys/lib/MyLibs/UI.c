@@ -1,4 +1,5 @@
 #include "LCD.h"
+#include "UART.h"
 #include "global.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -30,6 +31,7 @@ void displaySubmenu(uint8_t menuIndex)
             LCD_gotoxy(0, 1);
             LCD_printInt(temperatureSetValue);
             LCD_print(" C");
+            
             break;
         case 1:
             LCD_print("Set light value: ");
@@ -41,28 +43,23 @@ void displaySubmenu(uint8_t menuIndex)
 
 void updateMenuDisplay(void) 
 {
-<<<<<<< Updated upstream
-=======
-    char buf[16];  // buffer comun
-
->>>>>>> Stashed changes
+    char buf[16]; 
     switch(menu) {
         case 0:
             LCD_gotoxy(0, 1);
-            char buf[16];
             dtostrf(temperature, 2, 1, buf);
             LCD_print(buf);
             LCD_print(" C   "); 
+            LCD_print("          ");
             break;
         case 1:
             LCD_gotoxy(0, 1);
             itoa(ldrValue, buf, 10);
             LCD_print(buf);
             LCD_print(" Lux  ");
+            LCD_print("          ");
             break;
     }
-<<<<<<< Updated upstream
-=======
 }
 
 void setLCDDisplayMode(uint8_t mode)
@@ -74,11 +71,10 @@ void setLCDDisplayMode(uint8_t mode)
         LCD_print("Debugging");
         LCD_gotoxy(0, 1);
         LCD_print("...  ");
-        LCD_print("        ");
+        LCD_print("          ");
     }
     else
     {
         displayMenu(menu);
     }
->>>>>>> Stashed changes
 }

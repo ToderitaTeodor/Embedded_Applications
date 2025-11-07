@@ -6,8 +6,11 @@
 
 #define LM35_CHANNEL 0
 #define LDR_CHANNEL 1
-#define LM35_READING_INTERVAL  1500
-#define LDR_READING_INTERVAL  500
+#define LM35_READING_INTERVAL  1000UL
+#define LDR_READING_INTERVAL  500UL
+#define DEBOUNCE_DELAY_MS 200UL
+
+volatile uint32_t lastButtonPressTime = 0;
 
 const uint8_t totalMenus = 2;
 volatile uint8_t menu = 0;
