@@ -41,10 +41,6 @@ void UART_debugging(void)
         {
             if (strcmp(uart_buffer, "start") == 0)
             {
-<<<<<<< Updated upstream:Ambient_Control_Sys/lib/MyLibs/Transmit_Data.c
-                transmit_enabled = 1;
-                printString("Reading started\r\n");
-=======
         
                 debug_interface_active = 1;
                 transmit_enabled = 0; 
@@ -63,18 +59,13 @@ void UART_debugging(void)
                 {
                     printString("Error: Interface not started. Use 'start' first.\r\n");
                 }
->>>>>>> Stashed changes:Ambient_Control_Sys/lib/MyLibs/TransmitData.c
             }
             else if (strcmp(uart_buffer, "stop") == 0)
             {
                 transmit_enabled = 0;
-<<<<<<< Updated upstream:Ambient_Control_Sys/lib/MyLibs/Transmit_Data.c
-                printString("Reading stopped\r\n");
-=======
                 debug_interface_active = 0;
                 setLCDDisplayMode(0);
                 printString("Debug interface deactivated\r\n");
->>>>>>> Stashed changes:Ambient_Control_Sys/lib/MyLibs/TransmitData.c
             }
             else if (strcmp(uart_buffer, "status") == 0)
             {
@@ -84,11 +75,7 @@ void UART_debugging(void)
             else if (strcmp(uart_buffer, "help") == 0)
             {
                 printString("Available commands (NORMAL MODE):\r\n");
-<<<<<<< Updated upstream:Ambient_Control_Sys/lib/MyLibs/Transmit_Data.c
-                printString("start\r\nstop\r\nstatus\r\nhelp\r\ntest_mode\r\n");
-=======
                 printString("start\r\n -> read\r\nstop\r\nstatus\r\nhelp\r\nnext\r\nprev\r\ntest_mode\r\n");
->>>>>>> Stashed changes:Ambient_Control_Sys/lib/MyLibs/TransmitData.c
             }
             else
             {
