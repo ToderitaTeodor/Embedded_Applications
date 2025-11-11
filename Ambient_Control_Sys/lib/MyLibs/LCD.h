@@ -21,5 +21,6 @@ void LCD_sendData(uint8_t data);
 void LCD_clear(void);
 void LCD_gotoxy(uint8_t x, uint8_t y);
 void LCD_print(char *str);
+void LCD_printInt(int num);
 
 #endif
