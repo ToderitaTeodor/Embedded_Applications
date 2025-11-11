@@ -32,7 +32,6 @@ uint32_t sysTime(void)
 {
     uint32_t timer;
 
-
     ATOMIC_BLOCK(ATOMIC_FORCEON)
     {
         timer = ms_counter;
