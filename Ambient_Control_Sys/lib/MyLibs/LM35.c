@@ -13,6 +13,8 @@ void LM35_init(uint8_t channel)
 
 float LM35_ReadTempC(void)
 {
+    ADC_read(lm35_channel);
+
     float adcValue = ADC_read(lm35_channel);
     float voltage = ADC_to_voltage(adcValue);
 

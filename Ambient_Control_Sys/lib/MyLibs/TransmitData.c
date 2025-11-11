@@ -41,7 +41,6 @@ void UART_debugging(void)
         {
             if (strcmp(uart_buffer, "start") == 0)
             {
-        
                 debug_interface_active = 1;
                 transmit_enabled = 0; 
                 setLCDDisplayMode(1);
@@ -86,12 +85,12 @@ void UART_debugging(void)
         {
             if (strcmp(uart_buffer, "test_led") == 0)
             {
-                // for (int i = 0; i < 3; i++)
-                // {
-                //     PORTC ^= (1 << PC0);
-                //     _delay_ms(300);
-                // }
-                // printString("LED test completed\r\n");
+                for (int i = 0; i < 3; i++)
+                {
+                    PORTC ^= (1 << PC0);
+                    _delay_ms(300);
+                }
+                printString("LED test completed\r\n");
             }
             else if (strcmp(uart_buffer, "test_temp") == 0)
             {
@@ -104,14 +103,18 @@ void UART_debugging(void)
                 LCD_clear();
                 LCD_print("LCD Test");
                 LCD_gotoxy(0, 1);
-                LCD_print("OK");
+                LCD_print("OK   ");
+                LCD_print("       ");
+                
             }
             else if (strcmp(uart_buffer, "test_motor") == 0)
             {
-                // setMotorSpeed(200);
-                // _delay_ms(1000);
-                // setMotorSpeed(0);
-                // printString("Motor test completed\r\n");
+                DDRB |= (1 << PB4);
+                PORTB |= (1 << PB4);
+                _delay_ms(1000);
+                
+                printString("Motor test completed\r\n");
+                DDRB &= ~(1 << PB4);
             }
             else if (strcmp(uart_buffer, "help") == 0)
             {
@@ -143,15 +146,17 @@ void temperatureTransmit(uint32_t currentTime)
 
         if((temperature > temperatureSetValue) && !fanStart)
         {
-            setMotorSpeed(230);
+            DDRB |= (1 << PB5);
+            setMotorSpeed(180);
             fanStart = 1;
             if (transmit_enabled) printString("Fan ON\r\n");
         }
-        else if((temperature < temperatureSetValue - 1) && fanStart)
+        else if((temperature < temperatureSetValue) && fanStart)
         {
             setMotorSpeed(0);
             fanStart = 0;
             if (transmit_enabled) printString("Fan OFF\r\n");
+            DDRB &= ~(1 << PB5);
         }
     }
 }
@@ -160,6 +165,8 @@ void ldrTransmit(uint32_t currentTime)
 {
     if (currentTime - lasTimeLDR >= LDR_READING_INTERVAL)
     {
+        ADC_read(LDR_CHANNEL);
+        
         ldrValue = ADC_read(LDR_CHANNEL);
         lasTimeLDR = currentTime;
 
@@ -170,9 +177,9 @@ void ldrTransmit(uint32_t currentTime)
             printString("\r\n");
         }
 
-        if (ldrValue < ldrSetValue)
+        if (ldrValue < 150)
             PORTC |= (1 << PC0);
-        else
+        else if(ldrValue > 380)
             PORTC &= ~(1 << PC0);
         }
 }
