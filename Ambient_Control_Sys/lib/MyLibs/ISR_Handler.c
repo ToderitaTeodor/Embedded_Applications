@@ -8,39 +8,40 @@
 
 void ISR_init(void)
 {
-    // NEXT (PE4 - INT4), PREV (PE5 - INT5)
-    DDRE &= ~((1 << PE4) | (1 << PE5)); 
+    DDRD &= ~((1 << PD2) | (1 << PD3));
+    DDRE &= ~(1 << PE4);
 
-    PORTE |= (1 << PE4) | (1 << PE5);  
+    PORTD |= (1 << PD2) | (1 << PD3); 
+    PORTE |= (1 << PE4);             
 
-    // Falling edge
-    EICRB |= (1 << ISC41) | (1 << ISC51);
-    EICRB &= ~((1 << ISC40) | (1 << ISC50));
+    EIMSK |= (1 << INT2) | (1 << INT3) | (1 << INT4);
 
-    EIMSK |= (1 << INT4) | (1 << INT5);
+    EICRA |= (1 << ISC21) | (1 << ISC31);
+    EICRB |= (1 << ISC41);
+
 }
 
 // ISR NEXT - PE4 / INT4
-ISR(INT4_vect)
+ISR(INT2_vect)
 {
     uint32_t now = sysTime();
 
     if ((now - lastButtonPressTime) > DEBOUNCE_DELAY_MS)
     {       
-        if (!(PINE & (1 << PE4))) 
+        if (!(PIND & (1 << PD2))) 
         {
             lastButtonPressTime = now; 
             printString("NEXT\n\r");
 
             
-            EIMSK &= ~((1 << INT4) | (1 << INT5)); 
+            EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4)); 
             
             if(!selected)
             {
                 if(menu < totalMenus - 1)
                     menu++;
                 else
-                    menu = 0; 
+                    return; 
                 
                 displayMenu(menu);
                 updateMenuDisplay();
@@ -60,31 +61,31 @@ ISR(INT4_vect)
                 displaySubmenu(menu);
             }
             
-            EIMSK |= (1 << INT4) | (1 << INT5);
+            EIMSK |= (1 << INT2) | (1 << INT3) | (1 << INT4);
         }
     }
 }
 
 // ISR PREV - PE5 / INT5
-ISR(INT5_vect)
+ISR(INT3_vect)
 {
     uint32_t now = sysTime(); 
 
     
     if ((now - lastButtonPressTime) > DEBOUNCE_DELAY_MS)
     { 
-        if (!(PINE & (1 << PE5))) 
+        if (!(PIND & (1 << PD3))) 
         {
             lastButtonPressTime = now; 
 
-            EIMSK &= ~((1 << INT4) | (1 << INT5)); 
+            EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4)); 
 
             if(!selected)
             {
                 if(menu > 0)
                     menu--;
                 else
-                    menu = totalMenus - 1; 
+                    return; 
                 
                 displayMenu(menu);
                 updateMenuDisplay();
@@ -95,17 +96,51 @@ ISR(INT5_vect)
                 {
                     case 0: 
                         temperatureSetValue--; 
+
+                        if(temperatureSetValue < 10)
+                        {
+                            temperatureSetValue = 10;
+                        }
                       
                         break;
                     case 1: 
                         ldrSetValue--; 
-                        
+                    
                         break;
                 }
                 displaySubmenu(menu);
             }
             
-            EIMSK |= (1 << INT4) | (1 << INT5);
+            EIMSK |= (1 << INT2) | (1 << INT3) | (1 << INT4);
+        }
+    }
+}
+
+ISR(INT4_vect)
+{
+    uint32_t now = sysTime(); 
+
+    
+    if ((now - lastButtonPressTime) > DEBOUNCE_DELAY_MS)
+    { 
+        if (!(PINE & (1 << PE4))) 
+        {
+            lastButtonPressTime = now; 
+
+            EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4));
+
+            if(!selected)
+            {
+                selected = 1;
+                displaySubmenu(menu);
+            }
+            else
+            {
+                selected = 0;
+                displayMenu(menu);
+            }
+
+            EIMSK |= (1 << INT2) | (1 << INT3) | (1 << INT4);
         }
     }
 }

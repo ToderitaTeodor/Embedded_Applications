@@ -17,9 +17,14 @@
 
 int main(void)
 {
+
+    
     init_peripherals();
     sei();
     ISR_init();
+
+    
+    DDRC |= (1 << PC0);
 
     displayMenu(menu);
 
@@ -30,14 +35,15 @@ int main(void)
         if(!selected && !debug_interface_active)
         {
 
-            EIMSK &= ~((1 << INT4) | (1 << INT5)); 
+            EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4)); 
 
             updateMenuDisplay();
 
-            EIMSK |= (1 << INT4) | (1 << INT5); 
+            EIMSK |= (1 << INT2) | (1 << INT3) | (1 << INT4); 
         }
 
         temperatureTransmit(currentTime);
+        //ldrTransmit(currentTime);
         UART_debugging();
     }
 }
