@@ -11,17 +11,15 @@
 #include "LCD.h"
 #include "UI.h"
 #include "global.h"
-#include "ISR_Handler.h"
+#include "External_Interrupt.h"
 #include "SystemInit.h"
 
 
 int main(void)
 {
-
-    
     init_peripherals();
+    init_external_interrupts();
     sei();
-    ISR_init();
 
     
     DDRC |= (1 << PC0);
