@@ -4,12 +4,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define LM35_CHANNEL 0
-#define LDR_CHANNEL 2
-#define LM35_READING_INTERVAL  1000UL
-#define LDR_READING_INTERVAL  500UL
-#define DEBOUNCE_DELAY_MS 200UL
-
 volatile uint32_t lastButtonPressTime = 0;
 
 const uint8_t totalMenus = 2;
