@@ -3,6 +3,7 @@
 #include <util/delay.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ADC.h"
 #include "LM35.h"
 #include "UART.h"
