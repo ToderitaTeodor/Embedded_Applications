@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <util/atomic.h>
 
 volatile uint32_t ms_counter = 0; 
 
@@ -31,11 +32,11 @@ uint32_t sysTime(void)
 {
     uint32_t timer;
 
-    cli(); // stop all interrupts
-    
-    timer = ms_counter;
 
-    sei();
+    ATOMIC_BLOCK(ATOMIC_FORCEON)
+    {
+        timer = ms_counter;
+    }
 
     return timer;
 }
