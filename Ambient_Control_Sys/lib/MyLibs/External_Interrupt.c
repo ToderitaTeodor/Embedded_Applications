@@ -6,7 +6,7 @@
 #include "UART.h"
 #include "TimerUtil.h"
 
-void ISR_init(void)
+void init_external_interrupts(void)
 {
     DDRD &= ~((1 << PD2) | (1 << PD3));
     DDRE &= ~(1 << PE4);

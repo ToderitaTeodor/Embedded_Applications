@@ -19,8 +19,6 @@ void systemTime_init(void)
     OCR0A = 249;
 
     TIMSK0 |= (1 << OCIE0A);
-
-    sei();
 }
 
 ISR(TIMER0_COMPA_vect)
