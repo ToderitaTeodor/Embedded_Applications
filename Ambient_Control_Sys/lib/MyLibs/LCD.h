@@ -23,4 +23,6 @@ void LCD_gotoxy(uint8_t x, uint8_t y);
 void LCD_print(char *str);
 void LCD_printInt(int num);
 
+void LCD_backlight_OFF(void);
+void LCD_backlight_ON(void);
 #endif

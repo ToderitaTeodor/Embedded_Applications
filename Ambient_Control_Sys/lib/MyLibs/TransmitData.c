@@ -13,6 +13,9 @@
 #include "LCD.h"
 #include "UI.h"
 #include "SystemInit.h"
+#include "LCD.h"
+
+static uint8_t is_night_mode = 0;
 
 typedef enum {
     MODE_NORMAL,
@@ -136,13 +139,13 @@ void temperatureTransmit(uint32_t currentTime)
         temperature = LM35_ReadTempC();
         lasTimeLM35 = currentTime;
 
-        if(transmit_enabled)
-        {
-            printString("Temperature: ");
-            printFloat(temperature, 2);
-            printString(" C\r\n");
-            printString("--------\r\n");
-        }
+        // if(transmit_enabled)
+        // {
+        //     printString("Temperature: ");
+        //     printFloat(temperature, 2);
+        //     printString(" C\r\n");
+        //     printString("--------\r\n");
+        // }
 
         if((temperature > temperatureSetValue) && !fanStart)
         {
@@ -165,8 +168,6 @@ void ldrTransmit(uint32_t currentTime)
 {
     if (currentTime - lasTimeLDR >= LDR_READING_INTERVAL)
     {
-        ADC_read(LDR_CHANNEL);
-        
         ldrValue = ADC_read(LDR_CHANNEL);
         lasTimeLDR = currentTime;
 
@@ -177,9 +178,54 @@ void ldrTransmit(uint32_t currentTime)
             printString("\r\n");
         }
 
-        if (ldrValue < 150)
-            PORTC |= (1 << PC0);
-        else if(ldrValue > 380)
-            PORTC &= ~(1 << PC0);
+        if (ldrValue < LDR_NIGHT_THRESHOLD && !is_night_mode)
+        {
+            is_night_mode = 1;           
         }
+        else if(ldrValue > LDR_DAY_THRESHOLD && is_night_mode)
+        {
+            is_night_mode = 0;
+            
+            LCD_backlight_ON();
+
+            if(transmit_enabled)
+            {
+                printString("BACK LIGHT IS: ON");
+                printString("\r\n");
+            }
+        }
+        
+        if(is_night_mode)
+        {
+
+            is_idle = 0;
+
+            if((currentTime - lastButtonPressTime) > BACKLIGHT_TIMEOUT_MS)
+            {
+                LCD_backlight_OFF();
+
+                if(transmit_enabled)
+                {
+                    printString("BACK LIGHT IS: OFF");
+                    printString("\r\n");
+                }
+            }
+        }
+       else 
+        {
+            LCD_backlight_ON(); 
+
+            if((currentTime - lastButtonPressTime) > IDLE_TIMEOUT_MS && !is_idle)
+            {
+                is_idle = 1;
+
+                LCD_print("Temp: ");
+            LCD_gotoxy(6, 0);
+            
+            
+            LCD_print(" C   "); 
+            LCD_print("          ");
+            }
+        }
+    }
 }

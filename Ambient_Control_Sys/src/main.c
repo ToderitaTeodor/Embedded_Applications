@@ -20,9 +20,8 @@ int main(void)
     init_peripherals();
     init_external_interrupts();
     sei();
-
     
-    DDRC |= (1 << PC0);
+    LCD_print("HELLO WORLD");
 
     displayMenu(menu);
 
@@ -41,7 +40,7 @@ int main(void)
         }
 
         temperatureTransmit(currentTime);
-        //ldrTransmit(currentTime);
+        ldrTransmit(currentTime);
         UART_debugging();
     }
 }

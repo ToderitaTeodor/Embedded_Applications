@@ -20,4 +20,5 @@ void init_peripherals(void)
     LM35_init(LM35_CHANNEL);
     I2C_init();
     LCD_init();
+    _delay_ms(100);
 }
