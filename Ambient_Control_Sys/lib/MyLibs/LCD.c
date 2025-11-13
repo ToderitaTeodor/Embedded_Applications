@@ -7,6 +7,8 @@
 #define LCD_BACKLIGHT 0x08
 #define LCD_ENABLE 0x04
 
+static uint8_t backlight_state = LCD_BACKLIGHT;
+
 static void LCD_send(uint8_t data, uint8_t mode);
 
 void I2C_init(void)
@@ -39,9 +41,9 @@ void I2C_stop(void)
 
 static void LCD_pulseEnable(uint8_t data)
 {
-    I2C_write(data | LCD_ENABLE | LCD_BACKLIGHT);
+    I2C_write(data | LCD_ENABLE | backlight_state);
     _delay_us(1);
-    I2C_write((data & ~LCD_ENABLE) | LCD_BACKLIGHT);
+    I2C_write((data & ~LCD_ENABLE) | backlight_state);
     _delay_us(50);
 }
 
@@ -51,9 +53,9 @@ static void LCD_send(uint8_t data, uint8_t mode)
     uint8_t lowNib = (data << 4) & 0xF0;
 
     I2C_start(LCD_ADDR << 1);
-    I2C_write(highNib | mode | LCD_BACKLIGHT);
+    I2C_write(highNib | mode | backlight_state);
     LCD_pulseEnable(highNib | mode);
-    I2C_write(lowNib | mode | LCD_BACKLIGHT);
+    I2C_write(lowNib | mode | backlight_state);
     LCD_pulseEnable(lowNib | mode);
     I2C_stop();
 }
@@ -101,4 +103,18 @@ void LCD_printInt(int num)
     char buf[7];
     itoa(num, buf, 10);
     LCD_print(buf);
+}
+
+void LCD_backlight_ON(void)
+{
+    backlight_state = LCD_BACKLIGHT;
+
+    LCD_sendCommand(0x0C);
+}
+
+void LCD_backlight_OFF(void)
+{
+    backlight_state = 0x00;
+
+    LCD_sendCommand(0x0C);
 }

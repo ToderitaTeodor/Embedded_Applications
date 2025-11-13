@@ -5,6 +5,9 @@
 #include <avr/delay.h>
 #include "UART.h"
 #include "TimerUtil.h"
+#include "LCD.h"
+
+#define BUTTON_PRESSED_TIME 1500
 
 void init_external_interrupts(void)
 {
@@ -21,7 +24,7 @@ void init_external_interrupts(void)
 
 }
 
-// ISR NEXT - PE4 / INT4
+// ISR NEXT
 ISR(INT2_vect)
 {
     uint32_t now = sysTime();
@@ -31,11 +34,14 @@ ISR(INT2_vect)
         if (!(PIND & (1 << PD2))) 
         {
             lastButtonPressTime = now; 
-            printString("NEXT\n\r");
+            
 
-            
             EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4)); 
-            
+
+            is_idle = 0;
+
+            LCD_backlight_ON();
+
             if(!selected)
             {
                 if(menu < totalMenus - 1)
@@ -66,7 +72,7 @@ ISR(INT2_vect)
     }
 }
 
-// ISR PREV - PE5 / INT5
+// ISR PREV 
 ISR(INT3_vect)
 {
     uint32_t now = sysTime(); 
@@ -77,9 +83,13 @@ ISR(INT3_vect)
         if (!(PIND & (1 << PD3))) 
         {
             lastButtonPressTime = now; 
-
+            
             EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4)); 
 
+            is_idle = 0;
+
+            LCD_backlight_ON();
+            
             if(!selected)
             {
                 if(menu > 0)
@@ -116,11 +126,11 @@ ISR(INT3_vect)
     }
 }
 
+// ISR SELECT
 ISR(INT4_vect)
 {
     uint32_t now = sysTime(); 
 
-    
     if ((now - lastButtonPressTime) > DEBOUNCE_DELAY_MS)
     { 
         if (!(PINE & (1 << PE4))) 
@@ -129,6 +139,10 @@ ISR(INT4_vect)
 
             EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4));
 
+            is_idle = 0;
+
+            LCD_backlight_ON();
+            
             if(!selected)
             {
                 selected = 1;
