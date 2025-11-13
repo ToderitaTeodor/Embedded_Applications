@@ -3,8 +3,11 @@
 #include <util/delay.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "global.h"
 
-volatile uint32_t lastButtonPressTime = 0;
+volatile uint32_t lastButtonPressTime = (uint32_t)(-BACKLIGHT_TIMEOUT_MS - 1);
+
+volatile uint8_t is_idle = 0;
 
 const uint8_t totalMenus = 2;
 volatile uint8_t menu = 0;
