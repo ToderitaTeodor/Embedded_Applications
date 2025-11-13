@@ -60,3 +60,4 @@ dkms.conf
 # release and debug files
 Release/
 Debug/
+Ambient_Control_Sys/.vscode/settings.json
