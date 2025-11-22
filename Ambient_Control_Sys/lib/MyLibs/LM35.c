@@ -23,11 +23,8 @@ float LM35_ReadTempC(void)
         float adcValue = ADC_read(lm35_channel);
 
         sum += ADC_to_voltage(adcValue);
-        _delay_ms(1);
-    
+        _delay_us(10);
     }
 
     return (sum / 10.0) * 100; // temperature
-    printFloat((sum / 10.0) * 100, 2);
-    printString("\n\r");
 }

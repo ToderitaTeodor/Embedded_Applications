@@ -62,11 +62,6 @@ void updateMenuDisplay(void)
     uint32_t timeSincePress = sysTime() - lastButtonPressTime;
     uint8_t is_timeout = (timeSincePress > BACKLIGHT_TIMEOUT_MS);
 
-    printString("Temperature: ");
-    printInt(temp_to_display);
-    printString(" C\r\n");
-    printString("--------\r\n");
-
     if(is_night_mode && is_timeout)
     {
 
@@ -82,7 +77,7 @@ void updateMenuDisplay(void)
     {
         if(last_display_state == 2)
         {
-            LCD_backlight_ON;
+            LCD_backlight_ON();
             last_display_state = 99;
         }
         else
@@ -91,7 +86,7 @@ void updateMenuDisplay(void)
         }
     }
     
-    if (is_idle)
+    if (is_idle && is_timeout)
     {
         if (last_display_state != 1)
         {
