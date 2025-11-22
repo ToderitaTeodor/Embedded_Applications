@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define LM35_CHANNEL 0
-#define LDR_CHANNEL 1
+#define LM35_CHANNEL 1
+#define LDR_CHANNEL 2
 
 #define LM35_READING_INTERVAL  1500
 #define LDR_READING_INTERVAL  500
@@ -27,11 +27,14 @@ extern uint32_t lasTimeLM35;
 extern uint32_t lasTimeLDR;
 
 extern volatile uint8_t is_idle;
+extern volatile uint8_t is_night_mode;
+extern volatile uint8_t last_display_state;
 
 extern uint8_t fanStart;
 
 extern volatile float temperature;
 extern volatile uint8_t temperatureSetValue;
+extern volatile uint8_t temperature_offset;
 
 extern volatile uint16_t ldrValue;
 extern volatile uint16_t ldrSetValue;
