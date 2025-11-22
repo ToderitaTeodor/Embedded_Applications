@@ -6,6 +6,7 @@
 #include "UART.h"
 #include "TimerUtil.h"
 #include "LCD.h"
+#include "Storage.h"
 
 #define BUTTON_PRESSED_TIME 1500
 
@@ -66,7 +67,9 @@ ISR(INT2_vect)
                             
                             break;
                         case 1: 
-                            temperature_offset++; 
+                            temperature_offset++;
+                            
+                            Storage_SaveOffset(temperature_offset);
                             break;
                     }
                     displaySubmenu(menu);
@@ -120,7 +123,7 @@ ISR(INT3_vect)
                         case 0:
                             if(temperatureSetValue > 10)
                             {
-                                 temperatureSetValue--; 
+                                temperatureSetValue--; 
                             }
                             
                             break;
@@ -128,7 +131,9 @@ ISR(INT3_vect)
                             
                             if (temperature_offset > 0)
                             {
-                                temperature_offset--; 
+                                temperature_offset--;
+                                
+                                Storage_SaveOffset(temperature_offset);
                             }
 
                             break;

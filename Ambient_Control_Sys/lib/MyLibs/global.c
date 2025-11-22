@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include "global.h"
 
+MonitoringState currentMonitor;
+TestState currentTest;
+SystemMode currentMode;
+
 volatile uint32_t lastButtonPressTime = (uint32_t)(-BACKLIGHT_TIMEOUT_MS - 1);
 
 volatile uint8_t is_idle = 0;

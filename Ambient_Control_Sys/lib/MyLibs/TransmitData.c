@@ -14,13 +14,24 @@
 #include "UI.h"
 #include "SystemInit.h"
 #include "LCD.h"
+#include "Storage.h"
 
-typedef enum {
-    MODE_NORMAL,
-    MODE_TEST
-} SystemMode;
+MonitoringState currentMonitor = MONITOR_NONE;
+TestState currentTest = TEST_NONE;
 
-SystemMode currentMode = MODE_NORMAL;
+static void handle_normal_commands(void);
+static void handle_test_commands(void);
+static void handle_eeprom_commands(void);
+
+static uint32_t test_timer = 0;
+static uint8_t test_step = 0;
+
+void printIntAsFloat(int16_t value)
+{
+    printInt(value / 10);
+    printString(".");
+    printInt(abs(value % 10));
+}
 
 void UART_debugging(void)
 {
@@ -31,102 +42,237 @@ void UART_debugging(void)
         if (strcmp(uart_buffer, "test_mode") == 0)
         {
             currentMode = MODE_TEST;
-            printString("Switched to TEST MODE\r\n");
+            currentMonitor = MONITOR_NONE;
+
+            LCD_clear();
+            LCD_print("   TEST  MODE     ");
+
+            printString("Switched to TEST MODE. Type help for commands!\r\n");
+            return;
         }
         else if (strcmp(uart_buffer, "normal_mode") == 0)
         {
             currentMode = MODE_NORMAL;
-            printString("Switched to NORMAL MODE\r\n");
+            currentTest = TEST_NONE;
+
+            PORTD &= ~(1 << PD7);
+            DDRC &= ~(1 << PC1);
+            PORTC &= ~(1 << PC1);
+
+            LCD_clear();
+            last_display_state = 99;
+
+            printString("Switched to NORMAL MODE. Type help for commands!\r\n");
+            return;
         }
-        else if (currentMode == MODE_NORMAL)
+
+        if(currentMode == MODE_NORMAL)
         {
-            if (strcmp(uart_buffer, "start") == 0)
-            {
-                debug_interface_active = 1;
-                transmit_enabled = 0; 
-                setLCDDisplayMode(1);
-                printString("Debug interface activated (Ready for 'read')\r\n");
-            }
-            else if (strcmp(uart_buffer, "read") == 0)
-            {
-                if (debug_interface_active) 
-                {
-                    transmit_enabled = 1;
-                    setLCDDisplayMode(1);
-                    printString("Reading started\r\n");
-                }
-                else
-                {
-                    printString("Error: Interface not started. Use 'start' first.\r\n");
-                }
-            }
-            else if (strcmp(uart_buffer, "stop") == 0)
-            {
-                transmit_enabled = 0;
-                debug_interface_active = 0;
-                setLCDDisplayMode(0);
-                printString("Debug interface deactivated\r\n");
-            }
-            else if (strcmp(uart_buffer, "status") == 0)
-            {
-                printString("Reading ");
-                printString(transmit_enabled ? "ON\r\n" : "OFF\r\n");
-            }
-            else if (strcmp(uart_buffer, "help") == 0)
-            {
-                printString("Available commands (NORMAL MODE):\r\n");
-                printString("start\r\n -> read\r\nstop\r\nstatus\r\nhelp\r\nnext\r\nprev\r\ntest_mode\r\n");
-            }
-            else
-            {
-                printString("Unknown command. Type 'help' for list.\r\n");
-            }
+            handle_normal_commands();
         }
-        else if (currentMode == MODE_TEST)
+        else
         {
-            if (strcmp(uart_buffer, "test_led") == 0)
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    PORTC ^= (1 << PC0);
-                    _delay_ms(300);
-                }
-                printString("LED test completed\r\n");
-            }
-            else if (strcmp(uart_buffer, "test_temp") == 0)
-            {
-                printString("Temperature: ");
-                printFloat(temperature, 2);
-                printString(" C\r\n");
-            }
-            else if (strcmp(uart_buffer, "test_lcd") == 0)
+            handle_test_commands();
+        }
+    }
+}   
+ 
+static void handle_normal_commands(void)
+{
+    if(strcmp(uart_buffer, "temp_read") == 0)
+    {
+        currentMonitor = MONITOR_TEMP;
+        printString("Monitoring: Temperature\r\n");
+    }
+    else if(strcmp(uart_buffer, "ldr_read") == 0)
+    {
+        currentMonitor = MONITOR_LDR;
+        printString("Monitoring: LDR\n\r");
+    }
+    else if(strcmp(uart_buffer, "stop") == 0)
+    {
+        currentMonitor = MONITOR_NONE;
+        printString("Monitoring stopped.\r\n");
+    }
+    else if (strncmp(uart_buffer, "date:", 5) == 0 || strcmp(uart_buffer, "stats") == 0)
+    {
+        handle_eeprom_commands();
+    }
+    else if (strcmp(uart_buffer, "help") == 0)
+    {
+        printString("Normal Cmds: temp_read, ldr_read, stop, date:DD.MM.YYYY, stats, test_mode\r\n");
+    }
+    else
+    {
+        printString("Unknown Command. Type help for commands!\r\n");
+    }
+}
+
+static void handle_eeprom_commands(void)
+{
+    if (strncmp(uart_buffer, "date:", 5) == 0)
+    {
+        char *p = uart_buffer + 5;
+        int d = atoi(p);
+        while(*p && *p != '.') p++; if(*p) p++;
+        int m = atoi(p);
+        while(*p && *p != '.') p++; if(*p) p++;
+        int y = atoi(p);
+        
+        Storage_SetDate((uint8_t)d, (uint8_t)m, (uint16_t)y);
+        printString("Date saved in EEPROM!\r\n");
+    }
+    else if (strcmp(uart_buffer, "stats") == 0)
+    {
+        printString("--- SYSTEM STATS ---\r\n");
+        
+        printString("Install Date: ");
+        printInt(g_install_date.day); 
+        printString(".");
+        printInt(g_install_date.month); 
+        printString(".");
+        printInt(g_install_date.year); 
+        printString("\r\n");
+        
+        printString("Motor Starts: ");
+        
+        printInt((uint16_t)g_motor_starts); 
+        printString("\r\n");
+        
+        printString("Max Temp: ");
+        printIntAsFloat(g_max_temp); 
+        printString(" C\r\n");
+        
+        printString("Min Temp: ");
+        if(g_min_temp == 1000) 
+        {
+            printString("N/A");
+        }
+        else
+        {
+            printIntAsFloat(g_min_temp);
+        }
+        printString(" C\r\n");
+
+        printString("Temp Offset: ");
+        printInt(temperature_offset); 
+        printString(" C\r\n");
+
+        printString("--------------------\r\n");
+    }
+}
+
+static void handle_test_commands(void)
+{
+    if (strcmp(uart_buffer, "test_lcd") == 0)
+    {
+        currentTest = TEST_LCD;
+        test_step = 0;
+        printString("Starting LCD Test...\r\n");
+    }
+
+    else if (strcmp(uart_buffer, "test_led") == 0)
+    {
+        currentTest = TEST_LED_SEQUENCE;
+        printString("Starting LED Test...\r\n");
+    }
+    else if (strcmp(uart_buffer, "test_motor") == 0)
+    {
+        currentTest = TEST_MOTOR_RUN;
+        printString("Starting Motor Test...\r\n");
+    }
+    else if (strcmp(uart_buffer, "help") == 0)
+    {
+        printString("Test Cmds: test_led, test_motor, test_lcd, normal_mode\r\n");
+    }
+    else
+    {
+        printString("Unknown Test Command. Type help for commands!\r\n");
+    }
+}
+
+void handle_test_logic(uint32_t currentTime)
+{
+    if (currentMode != MODE_TEST)
+    {
+        return;
+    } 
+
+    LCD_backlight_ON();
+        
+    switch (currentTest)
+    {
+        case TEST_NONE:
+            break;
+
+        case TEST_LCD:
+            if (test_step == 0) 
             {
                 LCD_clear();
-                LCD_print("LCD Test");
+                LCD_print("LCD Test OK");
                 LCD_gotoxy(0, 1);
-                LCD_print("OK   ");
-                LCD_print("       ");
+                LCD_print("Wait 3s...");
                 
+                printString("LCD Text Shown. Waiting 3s...\r\n");
+                
+                test_timer = currentTime; 
+                test_step = 1;           
             }
-            else if (strcmp(uart_buffer, "test_motor") == 0)
+            else if (currentTime - test_timer >= 3000) 
             {
-                DDRB |= (1 << PB4);
-                PORTB |= (1 << PB4);
-                _delay_ms(1000);
+                LCD_clear();
+
+                LCD_print("   TEST  MODE     ");
+
+                currentTest = TEST_NONE; 
+                test_step = 0;           
+                printString("LCD Test Completed. Menu restored.\r\n");
+            }
+            break;
+
+        case TEST_LED_SEQUENCE:
+        
+            if (test_step == 0) {
                 
+                DDRD |= (1 << PD7);
+                PORTD &= ~(1 << PD7);
+
+                test_timer = currentTime;
+                test_step = 1;
+                PORTD ^= (1 << PD7); 
+            }
+            else if (currentTime - test_timer >= 300)
+            {
+                test_timer = currentTime;
+                PORTD ^= (1 << PD7); 
+                test_step++;
+                
+                if (test_step >= 6) {
+                    currentTest = TEST_NONE; 
+                    test_step = 0;
+                    PORTD &= ~(1 << PD7);
+                    printString("LED test completed\r\n");
+                }
+            }
+            break;
+
+        case TEST_MOTOR_RUN:
+           
+            if (test_step == 0) {
+                DDRC |= (1 << PC1);
+                PORTC |= (1 << PC1); 
+                test_timer = currentTime;
+                test_step = 1;
+            }
+            else if (currentTime - test_timer >= 1000)
+            {
+                PORTC &= ~(1 << PC1); 
+                DDRC &= ~(1 << PC1);
+                currentTest = TEST_NONE; 
+                test_step = 0;
                 printString("Motor test completed\r\n");
-                DDRB &= ~(1 << PB4);
             }
-            else if (strcmp(uart_buffer, "help") == 0)
-            {
-                printString("Available commands (TEST MODE):\r\n");
-                printString("test_led\r\ntest_temp\r\ntest_lcd\r\ntest_motor\r\nnormal_mode\r\n");
-            }
-            else
-            {
-                printString("Unknown command. Type 'help' for list.\r\n");
-            }
-        }
+            break;
     }
 }
         
@@ -137,25 +283,31 @@ void temperatureTransmit(uint32_t currentTime)
         temperature = LM35_ReadTempC() - temperature_offset;
         lasTimeLM35 = currentTime;
 
-        if(transmit_enabled)
+        Storage_UpdateMinMax(temperature);
+
+        if (currentMode == MODE_NORMAL) 
+        {
+            if((temperature > temperatureSetValue) && !fanStart)
+            {
+                DDRC |= (1 << PC1);  PORTC |= (1 << PC1); 
+                DDRD |= (1 << PD7);  PORTD |= (1 << PD7); 
+                fanStart = 1;
+                Storage_IncrementMotorCount();
+    
+            }
+            else if((temperature < temperatureSetValue) && fanStart)
+            {
+                DDRC &=  ~(1 << PC1); PORTC &= ~(1 << PC1);
+                DDRD &=  ~(1 << PD7); PORTD &= ~(1 << PD7);
+                fanStart = 0;
+            }
+        }
+
+        if(currentMode == MODE_NORMAL && currentMonitor == MONITOR_TEMP)
         {
             printString("Temperature: ");
             printFloat(temperature, 2);
             printString(" C\r\n");
-            printString("--------\r\n");
-        }
-
-        if((temperature > temperatureSetValue) && !fanStart)
-        {
-            DDRC |= (1 << PC1);
-            PORTC |= (1 << PC1);
-            fanStart = 1;
-        }
-        else if((temperature < temperatureSetValue) && fanStart)
-        {
-            DDRC &=  ~(1 << PC1);
-            PORTC &= ~(1 << PC1);
-            fanStart = 0;
         }
     }
 }
@@ -167,28 +319,27 @@ void ldrTransmit(uint32_t currentTime)
         ldrValue = ADC_read(LDR_CHANNEL);
         lasTimeLDR = currentTime;
 
-        // if (transmit_enabled)
-        // {
-        //     printString("LDR value: ");
-        //     printInt(ldrValue);
-        //     printString("\r\n");
-        // }
-
-        if (ldrValue < LDR_NIGHT_THRESHOLD && !is_night_mode)
+        if (currentMode == MODE_NORMAL)
         {
-            is_night_mode = 1;           
-        }
-        else if(ldrValue > LDR_DAY_THRESHOLD && is_night_mode)
-        {
-            is_night_mode = 0;
-        }
-        
-        if(!is_night_mode && !is_idle && !selected)
-        {
-            if((currentTime - lastButtonPressTime) > IDLE_TIMEOUT_MS)
-            {
-                is_idle = 1;
+            if (ldrValue < LDR_NIGHT_THRESHOLD && !is_night_mode) {
+                is_night_mode = 1;            
             }
+            else if(ldrValue > LDR_DAY_THRESHOLD && is_night_mode) {
+                is_night_mode = 0;
+            }
+            
+            if(!is_night_mode && !is_idle && !selected) {
+                if((currentTime - lastButtonPressTime) > IDLE_TIMEOUT_MS) {
+                    is_idle = 1;
+                }
+            }
+        }
+
+        if(currentMode == MODE_NORMAL && currentMonitor == MONITOR_LDR)
+        {
+            printString("LDR value: ");
+            printInt(ldrValue);
+            printString("\r\n");
         }
    
     }

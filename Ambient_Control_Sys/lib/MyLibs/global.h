@@ -17,6 +17,28 @@
 
 #define DEBOUNCE_DELAY_MS 200UL
 
+typedef enum {
+    MODE_NORMAL,
+    MODE_TEST
+} SystemMode;
+
+typedef enum {
+    MONITOR_NONE,
+    MONITOR_TEMP,
+    MONITOR_LDR
+} MonitoringState;
+
+typedef enum {
+    TEST_NONE,
+    TEST_LCD,
+    TEST_LED_SEQUENCE,
+    TEST_MOTOR_RUN
+} TestState;
+
+extern MonitoringState currentMonitor;
+extern TestState currentTest;
+extern SystemMode currentMode;
+
 extern volatile uint32_t lastButtonPressTime;
 
 extern const uint8_t totalMenus;
