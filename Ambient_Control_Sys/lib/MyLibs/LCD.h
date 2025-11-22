@@ -25,4 +25,6 @@ void LCD_printInt(int num);
 
 void LCD_backlight_OFF(void);
 void LCD_backlight_ON(void);
+
+void LCD_printFixed(int16_t value);
 #endif

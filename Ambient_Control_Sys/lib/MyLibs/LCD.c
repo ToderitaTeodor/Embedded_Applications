@@ -118,3 +118,27 @@ void LCD_backlight_OFF(void)
 
     LCD_sendCommand(0x0C);
 }
+
+void LCD_printFixed(int16_t value)
+{
+    char buffer[8];
+    int16_t intPart;
+    int16_t fracPart;
+
+    if(value < 0)
+    {
+        LCD_print("-");
+        value = -value;
+    }
+
+    intPart = value / 10;
+    fracPart = value % 10;
+
+    itoa(intPart, buffer, 10);
+    LCD_print(buffer);
+
+    LCD_print(".");
+
+    itoa(fracPart, buffer, 10);
+    LCD_print(buffer);
+}

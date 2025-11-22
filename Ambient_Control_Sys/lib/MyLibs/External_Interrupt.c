@@ -34,37 +34,43 @@ ISR(INT2_vect)
         if (!(PIND & (1 << PD2))) 
         {
             lastButtonPressTime = now; 
-            
 
-            EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4)); 
+            uint8_t was_sleeping = (last_display_state != 0);
 
             is_idle = 0;
 
             LCD_backlight_ON();
+            
+            EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4)); 
 
-            if(!selected)
-            {
-                if(menu < totalMenus - 1)
-                    menu++;
-                else
-                    return; 
-                
-                displayMenu(menu);
-                updateMenuDisplay();
-            }
+            if(was_sleeping) {}
+        
             else
             {
-                switch(menu)
+                if(!selected)
                 {
-                    case 0: 
-                        temperatureSetValue++; 
-                        
-                        break;
-                    case 1: 
-                        ldrSetValue++; 
-                        break;
+                    if(menu < totalMenus - 1)
+                        menu++;
+                    else
+                        return; 
+                    
+                    displayMenu(menu);
+                    updateMenuDisplay();
                 }
-                displaySubmenu(menu);
+                else
+                {
+                    switch(menu)
+                    {
+                        case 0: 
+                            temperatureSetValue++; 
+                            
+                            break;
+                        case 1: 
+                            temperature_offset++; 
+                            break;
+                    }
+                    displaySubmenu(menu);
+                }
             }
             
             EIMSK |= (1 << INT2) | (1 << INT3) | (1 << INT4);
@@ -82,43 +88,54 @@ ISR(INT3_vect)
     { 
         if (!(PIND & (1 << PD3))) 
         {
+
             lastButtonPressTime = now; 
-            
-            EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4)); 
+
+            uint8_t was_sleeping = (last_display_state != 0);
 
             is_idle = 0;
 
             LCD_backlight_ON();
             
-            if(!selected)
-            {
-                if(menu > 0)
-                    menu--;
-                else
-                    return; 
-                
-                displayMenu(menu);
-                updateMenuDisplay();
-            }
+            EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4)); 
+
+            if(was_sleeping) {}
+
             else
             {
-                switch(menu)
+                if(!selected)
                 {
-                    case 0: 
-                        temperatureSetValue--; 
-
-                        if(temperatureSetValue < 10)
-                        {
-                            temperatureSetValue = 10;
-                        }
-                      
-                        break;
-                    case 1: 
-                        ldrSetValue--; 
+                    if(menu > 0)
+                        menu--;
+                    else
+                        return; 
                     
-                        break;
+                    displayMenu(menu);
+                    updateMenuDisplay();
                 }
-                displaySubmenu(menu);
+                else
+                {
+                    switch(menu)
+                    {
+                        case 0:
+                            if(temperatureSetValue > 10)
+                            {
+                                 temperatureSetValue--; 
+                            }
+                            
+                            break;
+                        case 1: 
+                            
+                            if (temperature_offset > 0)
+                            {
+                                temperature_offset--; 
+                            }
+
+                            break;
+                    }
+
+                    displaySubmenu(menu);
+                }
             }
             
             EIMSK |= (1 << INT2) | (1 << INT3) | (1 << INT4);
@@ -137,21 +154,28 @@ ISR(INT4_vect)
         {
             lastButtonPressTime = now; 
 
-            EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4));
+            uint8_t was_sleeping = (last_display_state != 0);
 
             is_idle = 0;
 
             LCD_backlight_ON();
-            
-            if(!selected)
-            {
-                selected = 1;
-                displaySubmenu(menu);
-            }
+
+            EIMSK &= ~((1 << INT2) | (1 << INT3) | (1 << INT4));
+
+            if(was_sleeping) {}
+
             else
             {
-                selected = 0;
-                displayMenu(menu);
+                if(!selected)
+                {
+                    selected = 1;
+                    displaySubmenu(menu);
+                }
+                else
+                {
+                    selected = 0;
+                    displayMenu(menu);
+                }
             }
 
             EIMSK |= (1 << INT2) | (1 << INT3) | (1 << INT4);

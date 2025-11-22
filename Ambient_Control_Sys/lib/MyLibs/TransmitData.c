@@ -15,8 +15,6 @@
 #include "SystemInit.h"
 #include "LCD.h"
 
-static uint8_t is_night_mode = 0;
-
 typedef enum {
     MODE_NORMAL,
     MODE_TEST
@@ -136,30 +134,28 @@ void temperatureTransmit(uint32_t currentTime)
 {
     if(currentTime - lasTimeLM35 >= LM35_READING_INTERVAL)
     {
-        temperature = LM35_ReadTempC();
+        temperature = LM35_ReadTempC() - temperature_offset;
         lasTimeLM35 = currentTime;
 
-        // if(transmit_enabled)
-        // {
-        //     printString("Temperature: ");
-        //     printFloat(temperature, 2);
-        //     printString(" C\r\n");
-        //     printString("--------\r\n");
-        // }
+        if(transmit_enabled)
+        {
+            printString("Temperature: ");
+            printFloat(temperature, 2);
+            printString(" C\r\n");
+            printString("--------\r\n");
+        }
 
         if((temperature > temperatureSetValue) && !fanStart)
         {
-            DDRB |= (1 << PB5);
-            setMotorSpeed(180);
+            DDRC |= (1 << PC1);
+            PORTC |= (1 << PC1);
             fanStart = 1;
-            if (transmit_enabled) printString("Fan ON\r\n");
         }
         else if((temperature < temperatureSetValue) && fanStart)
         {
-            setMotorSpeed(0);
+            DDRC &=  ~(1 << PC1);
+            PORTC &= ~(1 << PC1);
             fanStart = 0;
-            if (transmit_enabled) printString("Fan OFF\r\n");
-            DDRB &= ~(1 << PB5);
         }
     }
 }
@@ -171,12 +167,12 @@ void ldrTransmit(uint32_t currentTime)
         ldrValue = ADC_read(LDR_CHANNEL);
         lasTimeLDR = currentTime;
 
-        if (transmit_enabled)
-        {
-            printString("LDR value: ");
-            printInt(ldrValue);
-            printString("\r\n");
-        }
+        // if (transmit_enabled)
+        // {
+        //     printString("LDR value: ");
+        //     printInt(ldrValue);
+        //     printString("\r\n");
+        // }
 
         if (ldrValue < LDR_NIGHT_THRESHOLD && !is_night_mode)
         {
@@ -185,47 +181,15 @@ void ldrTransmit(uint32_t currentTime)
         else if(ldrValue > LDR_DAY_THRESHOLD && is_night_mode)
         {
             is_night_mode = 0;
-            
-            LCD_backlight_ON();
-
-            if(transmit_enabled)
-            {
-                printString("BACK LIGHT IS: ON");
-                printString("\r\n");
-            }
         }
         
-        if(is_night_mode)
+        if(!is_night_mode && !is_idle && !selected)
         {
-
-            is_idle = 0;
-
-            if((currentTime - lastButtonPressTime) > BACKLIGHT_TIMEOUT_MS)
-            {
-                LCD_backlight_OFF();
-
-                if(transmit_enabled)
-                {
-                    printString("BACK LIGHT IS: OFF");
-                    printString("\r\n");
-                }
-            }
-        }
-       else 
-        {
-            LCD_backlight_ON(); 
-
-            if((currentTime - lastButtonPressTime) > IDLE_TIMEOUT_MS && !is_idle)
+            if((currentTime - lastButtonPressTime) > IDLE_TIMEOUT_MS)
             {
                 is_idle = 1;
-
-                LCD_print("Temp: ");
-            LCD_gotoxy(6, 0);
-            
-            
-            LCD_print(" C   "); 
-            LCD_print("          ");
             }
         }
+   
     }
 }
